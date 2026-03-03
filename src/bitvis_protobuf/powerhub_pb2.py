@@ -22,8 +22,8 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
-import han_port_pb2 as han__port__pb2
-import device_info_pb2 as device__info__pb2
+from . import han_port_pb2 as han__port__pb2
+from . import device_info_pb2 as device__info__pb2
 
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0epowerhub.proto\x12\x08powerhub\x1a\x0ehan_port.proto\x1a\x11\x64\x65vice_info.proto\"\xcc\x01\n\nDiagnostic\x12!\n\x04type\x18\x01 \x01(\x0e\x32\x13.powerhub.EventType\x12\x10\n\x08uptime_s\x18\x02 \x01(\x04\x12\x15\n\rwifi_rssi_dbm\x18\x03 \x01(\x05\x12,\n\x0b\x64\x65vice_info\x18\x04 \x01(\x0b\x32\x17.device_info.DeviceInfo\x12#\n\x1bhan_msg_successfully_parsed\x18\x05 \x01(\r\x12\x1f\n\x17han_msg_buffer_overflow\x18\x06 \x01(\r\"k\n\x07Payload\x12)\n\x06sample\x18\x01 \x01(\x0b\x32\x17.han_port.HanPortSampleH\x00\x12*\n\ndiagnostic\x18\x02 \x01(\x0b\x32\x14.powerhub.DiagnosticH\x00\x42\t\n\x07payload*\x9b\x02\n\tEventType\x12\x1a\n\x16\x45VENT_TYPE_UNSPECIFIED\x10\x00\x12\x14\n\x10\x45VENT_TYPE_TIMER\x10\x01\x12%\n!EVENT_TYPE_PROVISIONING_REQUESTED\x10\x02\x12\x1d\n\x19\x45VENT_TYPE_MQTT_CONNECTED\x10\x03\x12\x1f\n\x1b\x45VENT_TYPE_REBOOT_REQUESTED\x10\x04\x12\x1b\n\x17\x45VENT_TYPE_BOOT_UNKNOWN\x10\x05\x12\x1c\n\x18\x45VENT_TYPE_BOOT_SOFTWARE\x10\x06\x12\x1c\n\x18\x45VENT_TYPE_BOOT_POWER_ON\x10\x07\x12\x1c\n\x18\x45VENT_TYPE_BOOT_WATCHDOG\x10\x08\x62\x06proto3')

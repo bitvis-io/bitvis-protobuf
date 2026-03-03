@@ -46,12 +46,20 @@ def main() -> int:
 
     if result.returncode == 0:
         print("\n✓ Protobuf code generated successfully!")
-        
+
+        # Fix absolute imports to relative imports in generated files
+        import re
+        for pb_file in output_dir.glob("*_pb2.py"):
+            text = pb_file.read_text()
+            fixed = re.sub(r"^import (\w+_pb2)", r"from . import \1", text, flags=re.MULTILINE)
+            if fixed != text:
+                pb_file.write_text(fixed)
+
         # List generated files
         print("\nGenerated files:")
         for pb_file in sorted(output_dir.glob("*_pb2.py*")):
             print(f"  - {pb_file.name}")
-        
+
         return 0
     else:
         print(f"\n✗ Error generating protobuf code (exit code {result.returncode})")
