@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "Apache-2.0"}
 authors = [
-    {name = "Mandus Borjesson", email = "mandus@example.com"},
+    {name = "Bitvis AB"},
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -26,8 +26,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/MandusBorjesson/bitvis-protobuf"
-Repository = "https://github.com/MandusBorjesson/bitvis-protobuf"
+Homepage = "https://bitvis.se"
+Repository = "https://https://github.com/bitvis-io/bitvis-protobuf"
 
 [project.scripts]
 bitvis-listen = "bitvis_protobuf.cli:main"
