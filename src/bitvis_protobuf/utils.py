@@ -1,5 +1,42 @@
 """Utility functions for Bitvis Power Hub host and device formatting."""
 
+import asyncio
+import ipaddress
+import logging
+
+_LOGGER = logging.getLogger(__name__)
+
+
+async def async_resolve_host(host: str) -> set[str]:
+    """Resolve *host* to a set of IP address strings.
+
+    Returns all addresses returned by getaddrinfo, plus the literal itself if
+    *host* is already an IP address.  Raises OSError if the host cannot be
+    resolved to any address.
+    """
+    ips: set[str] = set()
+
+    try:
+        ipaddress.ip_address(host)
+    except ValueError:
+        pass
+    else:
+        ips.add(host)
+
+    loop = asyncio.get_running_loop()
+    try:
+        addrinfo = await loop.getaddrinfo(host, None)
+    except OSError:
+        _LOGGER.debug("Could not resolve host %s to IP addresses", host)
+    else:
+        for *_, sockaddr in addrinfo:
+            ips.add(sockaddr[0])
+
+    if not ips:
+        raise OSError(f"Could not resolve host {host!r} to an IP address")
+
+    return ips
+
 
 def normalize_host(host: str) -> str:
     """Strip surrounding brackets from IPv6 literals (e.g. '[2001:db8::10]')."""
