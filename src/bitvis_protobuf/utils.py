@@ -3,6 +3,7 @@
 import asyncio
 import ipaddress
 import logging
+import socket
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,6 +37,41 @@ async def async_resolve_host(host: str) -> set[str]:
         raise OSError(f"Could not resolve host {host!r} to an IP address")
 
     return ips
+
+
+async def async_verify_udp_port_bindable(port: int) -> None:
+    """Verify UDP *port* can be bound on IPv6 and IPv4 wildcard addresses.
+
+    Creates ephemeral datagram endpoints on ``::`` and ``0.0.0.0`` to confirm the
+    port can be acquired before starting a shared listener.
+
+    Raises:
+        OSError: If the port cannot be bound for every attempted address family.
+    """
+    loop = asyncio.get_running_loop()
+    transports: list[asyncio.DatagramTransport] = []
+    bind_errors: list[Exception] = []
+    for family, local_addr in (
+        (socket.AF_INET6, ("::", port)),
+        (socket.AF_INET, ("0.0.0.0", port)),
+    ):
+        try:
+            transport, _ = await loop.create_datagram_endpoint(
+                asyncio.DatagramProtocol,
+                local_addr=local_addr,
+                family=family,
+            )
+        except (OSError, ValueError) as err:
+            bind_errors.append(err)
+        else:
+            assert isinstance(transport, asyncio.DatagramTransport)
+            transports.append(transport)
+
+    if not transports:
+        raise OSError("UDP port is unavailable or invalid") from bind_errors[0]
+
+    for transport in transports:
+        transport.close()
 
 
 def normalize_host(host: str) -> str:
