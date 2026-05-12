@@ -6,7 +6,13 @@ __version__ = "0.1.0"
 from . import device_info_pb2, diagnostic_pb2, han_port_pb2, powerhub_pb2
 from .listener import DatagramCallback, SharedListener
 from .parse import PayloadDiagnostic, PayloadSample, parse_payload
-from .utils import async_resolve_host, format_mac_address, format_unique_id, normalize_host
+from .utils import (
+    async_resolve_host,
+    async_verify_udp_port_bindable,
+    format_mac_address,
+    format_unique_id,
+    normalize_host,
+)
 
 __all__ = [
     "device_info_pb2",
@@ -19,6 +25,7 @@ __all__ = [
     "PayloadSample",
     "parse_payload",
     "async_resolve_host",
+    "async_verify_udp_port_bindable",
     "format_mac_address",
     "format_unique_id",
     "normalize_host",
