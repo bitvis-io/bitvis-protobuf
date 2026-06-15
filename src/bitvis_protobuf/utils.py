@@ -5,6 +5,8 @@ import ipaddress
 import logging
 import socket
 
+from getmac import get_mac_address as _get_mac_address
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -81,12 +83,38 @@ def normalize_host(host: str) -> str:
     return host
 
 
-def format_unique_id(host: str, port: int) -> str:
-    """Format a stable unique ID from host and port.
+def get_mac_address_for_host(host: str) -> str | None:
+    """Look up the MAC address for *host*.
 
-    IPv6 addresses are wrapped in brackets to produce a standard '[addr]:port'
-    string that is unambiguous when the address itself contains colons.
+    *host* may be an IPv4/IPv6 address or a resolvable hostname.
+    Returns a normalized MAC string suitable for use as a unique ID, or None.
     """
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        mac = _get_mac_address(hostname=host)
+    else:
+        if ip.version == 4:
+            mac = _get_mac_address(ip=host)
+        else:
+            mac = _get_mac_address(ip6=host)
+
+    if not mac:
+        return None
+
+    return format_unique_id(mac)
+
+
+def format_unique_id(host: str, port: int | None = None) -> str:
+    """Format a stable unique ID from host and port, or normalize a MAC address.
+
+    When *port* is provided, returns the legacy ``host:port`` (or ``[host]:port``
+    for IPv6) unique ID format.  When *port* is omitted, *host* is treated as a
+    MAC address and normalized to lowercase colon-separated form.
+    """
+    if port is None:
+        return host.lower().replace("-", ":")
+
     if ":" in host and not host.startswith("["):
         return f"[{host}]:{port}"
     return f"{host}:{port}"
