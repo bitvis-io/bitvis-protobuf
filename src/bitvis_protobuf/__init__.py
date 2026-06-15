@@ -11,6 +11,7 @@ from .utils import (
     async_verify_udp_port_bindable,
     format_mac_address,
     format_unique_id,
+    get_mac_address_for_host,
     normalize_host,
 )
 
@@ -28,5 +29,6 @@ __all__ = [
     "async_verify_udp_port_bindable",
     "format_mac_address",
     "format_unique_id",
+    "get_mac_address_for_host",
     "normalize_host",
 ]
