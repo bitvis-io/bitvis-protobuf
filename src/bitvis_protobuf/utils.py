@@ -83,11 +83,12 @@ def normalize_host(host: str) -> str:
     return host
 
 
-def get_mac_address_for_host(host: str) -> str | None:
+def get_mac_address_for_host(host: str) -> str:
     """Look up the MAC address for *host*.
 
     *host* may be an IPv4/IPv6 address or a resolvable hostname.
-    Returns a normalized MAC string suitable for use as a unique ID, or None.
+    Returns a normalized MAC string suitable for use as a unique ID, or
+    00:00:00:00:00:00.
     """
     try:
         ip = ipaddress.ip_address(host)
@@ -99,27 +100,4 @@ def get_mac_address_for_host(host: str) -> str | None:
         else:
             mac = _get_mac_address(ip6=host)
 
-    if not mac:
-        return None
-
-    return format_unique_id(mac)
-
-
-def format_unique_id(host: str, port: int | None = None) -> str:
-    """Format a stable unique ID from host and port, or normalize a MAC address.
-
-    When *port* is provided, returns the legacy ``host:port`` (or ``[host]:port``
-    for IPv6) unique ID format.  When *port* is omitted, *host* is treated as a
-    MAC address and normalized to lowercase colon-separated form.
-    """
-    if port is None:
-        return host.lower().replace("-", ":")
-
-    if ":" in host and not host.startswith("["):
-        return f"[{host}]:{port}"
-    return f"{host}:{port}"
-
-
-def format_mac_address(mac_bytes: bytes) -> str:
-    """Format raw MAC address bytes as a colon-separated hex string."""
-    return mac_bytes.hex(sep=":")
+    return mac if mac else "00:00:00:00:00:00"
