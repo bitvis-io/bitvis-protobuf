@@ -10,6 +10,14 @@ from getmac import get_mac_address as _get_mac_address
 _LOGGER = logging.getLogger(__name__)
 
 
+def format_mac_address(mac_address: bytes) -> str:
+    """Format raw MAC address bytes as colon-separated hexadecimal octets."""
+    if not mac_address:
+        return "00:00:00:00:00:00"
+
+    return ":".join(f"{octet:02x}" for octet in mac_address)
+
+
 async def async_resolve_host(host: str) -> set[str]:
     """Resolve *host* to a set of IP address strings.
 
