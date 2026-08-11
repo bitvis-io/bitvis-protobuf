@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "bitvis-protobuf"
-version = "0.2.6"
+version = "0.2.7"
 description = "Protobuf definitions for Bitvis Power Hub"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -28,7 +28,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://bitvis.se"
-Repository = "https://https://github.com/bitvis-io/bitvis-protobuf"
+Repository = "https://github.com/bitvis-io/bitvis-protobuf"
 
 [project.scripts]
 bitvis-listen = "bitvis_protobuf.cli:main"
