@@ -46,9 +46,11 @@ class Diagnostic(_message.Message):
     def __init__(self, type: _Optional[_Union[EventType, str]] = ..., uptime_s: _Optional[int] = ..., wifi_rssi_dbm: _Optional[int] = ..., device_info: _Optional[_Union[_device_info_pb2.DeviceInfo, _Mapping]] = ..., han_msg_successfully_parsed: _Optional[int] = ..., han_msg_buffer_overflow: _Optional[int] = ...) -> None: ...
 
 class Payload(_message.Message):
-    __slots__ = ("sample", "diagnostic")
+    __slots__ = ("sample", "diagnostic", "mac_address")
     SAMPLE_FIELD_NUMBER: _ClassVar[int]
     DIAGNOSTIC_FIELD_NUMBER: _ClassVar[int]
+    MAC_ADDRESS_FIELD_NUMBER: _ClassVar[int]
     sample: _han_port_pb2.HanPortSample
     diagnostic: Diagnostic
-    def __init__(self, sample: _Optional[_Union[_han_port_pb2.HanPortSample, _Mapping]] = ..., diagnostic: _Optional[_Union[Diagnostic, _Mapping]] = ...) -> None: ...
+    mac_address: bytes
+    def __init__(self, sample: _Optional[_Union[_han_port_pb2.HanPortSample, _Mapping]] = ..., diagnostic: _Optional[_Union[Diagnostic, _Mapping]] = ..., mac_address: _Optional[bytes] = ...) -> None: ...

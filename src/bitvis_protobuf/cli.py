@@ -5,8 +5,8 @@ import asyncio
 import logging
 import signal
 
-from .listener import SharedListener
-from .parse import PayloadDiagnostic, PayloadSample, parse_payload
+from .listener import Filter, FilterAny, FilterIp, FilterMac, SharedListener
+from .parse import PayloadDiagnostic, PayloadSample
 from .utils import format_mac_address
 
 DEFAULT_PORT = 58220
@@ -14,9 +14,11 @@ DEFAULT_PORT = 58220
 _LOGGER = logging.getLogger(__name__)
 
 
-def _log_payload(payload: PayloadSample | PayloadDiagnostic, addr: tuple[str, int]) -> None:
+def _log_payload(
+    payload: PayloadSample | PayloadDiagnostic, addr: tuple[str, int]
+) -> None:
     """Print a human-readable summary of a received payload."""
-    src = f"{addr[0]}:{addr[1]}"
+    src = f"{addr[0]} [{payload.mac_address}]"
     if isinstance(payload, PayloadSample):
         s = payload.sample
         parts = [f"sample from {src}"]
@@ -44,22 +46,8 @@ def _log_payload(payload: PayloadSample | PayloadDiagnostic, addr: tuple[str, in
         print("  ".join(parts))
 
 
-class _AllSourcesListener(SharedListener):
-    """SharedListener variant that dispatches every datagram regardless of source IP."""
-
-    def dispatch(self, data: bytes, addr: tuple[str, int]) -> None:
-        payload = parse_payload(data)
-        if payload is None:
-            _LOGGER.debug("Unrecognised datagram from %s, ignoring", addr[0])
-            return
-        _log_payload(payload, addr)
-
-
-async def _run(port: int, ip_filter: str | None) -> None:
-    if ip_filter:
-        listener: SharedListener = SharedListener()
-    else:
-        listener = _AllSourcesListener()
+async def _run(port: int, filters: list[Filter]) -> None:
+    listener: SharedListener = SharedListener()
 
     try:
         await listener.start(port)
@@ -67,11 +55,9 @@ async def _run(port: int, ip_filter: str | None) -> None:
         print(f"Failed to bind port {port}: {err}")
         return
 
-    if ip_filter:
-        listener.register({ip_filter}, _log_payload)
-        print(f"Listening on port {port}, filtering to {ip_filter} ...")
-    else:
-        print(f"Listening on port {port} (all sources) ...")
+    for filt in filters:
+        listener.register(filt, _log_payload)
+        print(f"Listening on port {port}, filtering to {filt} ...")
 
     stop_event = asyncio.Event()
     loop = asyncio.get_running_loop()
@@ -97,9 +83,13 @@ def main() -> None:
     )
     parser.add_argument(
         "--ip",
-        metavar="ADDRESS",
         default=None,
-        help="Source IP address to filter on (default: all devices)",
+        help="Source IP address to filter on",
+    )
+    parser.add_argument(
+        "--mac",
+        default=None,
+        help="MAC address to filter on (format: AA:BB:CC:DD:EE:FF)",
     )
     parser.add_argument(
         "--debug",
@@ -108,12 +98,20 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    filters = []
+    if args.mac:
+        filters.append(FilterMac(args.mac))
+    if args.ip:
+        filters.append(FilterIp(args.ip))
+    if not filters:
+        filters.append(FilterAny())
+
     logging.basicConfig(
         level=logging.DEBUG if args.debug else logging.WARNING,
         format="%(levelname)s %(name)s: %(message)s",
     )
 
-    asyncio.run(_run(args.port, args.ip))
+    asyncio.run(_run(args.port, filters))
 
 
 if __name__ == "__main__":
