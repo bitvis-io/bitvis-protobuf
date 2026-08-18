@@ -31,4 +31,5 @@ message Payload {
         han_port.HanPortSample sample = 1;
         Diagnostic diagnostic = 2;
     }
+    bytes mac_address = 3;
 }
