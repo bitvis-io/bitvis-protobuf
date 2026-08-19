@@ -49,32 +49,41 @@ class _SharedProtocol(asyncio.DatagramProtocol):
 
 @dataclass(frozen=True)
 class Filter(ABC):
+    """Base filter for SharedListener callback dispatch."""
+
     @abstractmethod
-    def match(sample: PayloadSample | PayloadDiagnostic, host: str):
-        pass
+    def match(self, sample: PayloadSample | PayloadDiagnostic, host: str) -> bool:
+        """Return True when *sample* from *host* should be delivered."""
 
 
+@dataclass(frozen=True)
 class FilterAny(Filter):
-    def __init__(self):
-        pass
+    """Match every payload."""
 
-    def match(self, sample: PayloadSample | PayloadDiagnostic, host: str):
+    def match(self, sample: PayloadSample | PayloadDiagnostic, host: str) -> bool:
+        """Always match."""
         return True
 
 
+@dataclass(frozen=True)
 class FilterMac(Filter):
-    def __init__(self, mac_address: str):
-        self.mac_address = mac_address
+    """Match payloads by MAC address (case-insensitive)."""
 
-    def match(self, sample: PayloadSample | PayloadDiagnostic, host: str):
+    mac_address: str
+
+    def match(self, sample: PayloadSample | PayloadDiagnostic, host: str) -> bool:
+        """Match when the payload MAC equals this filter's MAC."""
         return sample.mac_address.lower() == self.mac_address.lower()
 
 
+@dataclass(frozen=True)
 class FilterIp(Filter):
-    def __init__(self, ip: str):
-        self.ip = ip
+    """Match payloads by source IP."""
 
-    def match(self, sample: PayloadSample | PayloadDiagnostic, host: str):
+    ip: str
+
+    def match(self, sample: PayloadSample | PayloadDiagnostic, host: str) -> bool:
+        """Match when the source host equals this filter's IP."""
         return host == self.ip
 
 
