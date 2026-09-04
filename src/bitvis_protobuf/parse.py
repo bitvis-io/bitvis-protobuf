@@ -6,7 +6,7 @@ from google.protobuf.message import DecodeError
 
 from .han_port_pb2 import HanPortSample
 from .powerhub_pb2 import Diagnostic, Payload
-from .utils import InvalidMacAddressError, format_mac_address
+from .utils import format_mac_address
 
 
 @dataclass(frozen=True)
@@ -30,6 +30,8 @@ def parse_payload(data: bytes) -> PayloadSample | PayloadDiagnostic | None:
 
     Returns a PayloadSample or PayloadDiagnostic on success, or None if the
     data cannot be decoded or contains an unrecognised payload type.
+
+    Raises InvalidMacAddressError when the payload has no valid MAC address.
     """
     payload = Payload()
     try:
@@ -37,10 +39,7 @@ def parse_payload(data: bytes) -> PayloadSample | PayloadDiagnostic | None:
     except DecodeError:
         return None
 
-    try:
-        mac_address = format_mac_address(payload.mac_address)
-    except InvalidMacAddressError:
-        return None
+    mac_address = format_mac_address(payload.mac_address)
 
     if payload.HasField("sample"):
         return PayloadSample(mac_address=mac_address, sample=payload.sample)
