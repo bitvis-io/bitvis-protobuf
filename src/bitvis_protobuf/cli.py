@@ -7,7 +7,7 @@ import signal
 
 from .listener import Filter, FilterAny, FilterIp, FilterMac, SharedListener
 from .parse import PayloadDiagnostic, PayloadSample
-from .utils import format_mac_address
+from .utils import InvalidMacAddressError, format_mac_address
 
 DEFAULT_PORT = 58220
 
@@ -46,8 +46,22 @@ def _log_payload(
         print("  ".join(parts))
 
 
+def _log_invalid_mac(addr: tuple[str, int]) -> None:
+    """Print a message when a datagram has no valid MAC address."""
+    print(f"ignored datagram with invalid MAC from {addr[0]}")
+
+
 async def _run(port: int, filters: list[Filter]) -> None:
     listener: SharedListener = SharedListener()
+    original_dispatch = listener.dispatch
+
+    def dispatch(data: bytes, addr: tuple[str, int]) -> None:
+        try:
+            original_dispatch(data, addr)
+        except InvalidMacAddressError:
+            _log_invalid_mac(addr)
+
+    listener.dispatch = dispatch
 
     try:
         await listener.start(port)

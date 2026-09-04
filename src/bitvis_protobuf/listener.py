@@ -9,6 +9,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from .parse import PayloadDiagnostic, PayloadSample, parse_payload
+from .utils import InvalidMacAddressError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,7 +34,12 @@ class _SharedProtocol(asyncio.DatagramProtocol):
 
     def datagram_received(self, data: bytes, addr: tuple[str, int]) -> None:
         """Forward datagram to the shared listener for dispatch."""
-        self._listener.dispatch(data, addr)
+        try:
+            self._listener.dispatch(data, addr)
+        except InvalidMacAddressError:
+            _LOGGER.debug(
+                "Received datagram with invalid MAC from %s, ignoring", addr[0]
+            )
 
     def error_received(self, exc: Exception) -> None:
         """Handle protocol error."""
