@@ -35,3 +35,12 @@ repos:
     hooks:
       - id: flake8
         args: ["--max-line-length=88", "--extend-ignore=E203"]
+
+  - repo: local
+    hooks:
+      - id: check-version-bump
+        name: Require pyproject.toml with src/ changes
+        entry: scripts/check_version_bump.sh
+        language: system
+        files: ^src/
+        pass_filenames: false
