@@ -14,6 +14,7 @@ from .utils import InvalidMacAddressError
 _LOGGER = logging.getLogger(__name__)
 
 DatagramCallback = Callable[[PayloadSample | PayloadDiagnostic, tuple[str, int]], None]
+ErrorCallback = Callable[[Exception, tuple[str, int]], None]
 
 
 class _SharedProtocol(asyncio.DatagramProtocol):
@@ -34,12 +35,7 @@ class _SharedProtocol(asyncio.DatagramProtocol):
 
     def datagram_received(self, data: bytes, addr: tuple[str, int]) -> None:
         """Forward datagram to the shared listener for dispatch."""
-        try:
-            self._listener.dispatch(data, addr)
-        except InvalidMacAddressError:
-            _LOGGER.debug(
-                "Received datagram with invalid MAC from %s, ignoring", addr[0]
-            )
+        self._listener.dispatch(data, addr)
 
     def error_received(self, exc: Exception) -> None:
         """Handle protocol error."""
@@ -105,6 +101,7 @@ class SharedListener:
         """Initialize the shared listener."""
         self._transports: list[asyncio.DatagramTransport] = []
         self._callbacks: dict[Filter, DatagramCallback] = {}
+        self._error_callbacks: list[ErrorCallback] = []
 
     async def start(self, port: int) -> None:
         """Bind UDP sockets (IPv4 and IPv6) and start receiving datagrams."""
@@ -165,6 +162,17 @@ class SharedListener:
         """Remove source-IP mappings."""
         self._callbacks.pop(filt, None)
 
+    def register_error_callback(self, callback: ErrorCallback) -> None:
+        """Register a callback invoked when a datagram cannot be parsed."""
+        self._error_callbacks.append(callback)
+
+    def unregister_error_callback(self, callback: ErrorCallback) -> None:
+        """Remove a previously registered error callback."""
+        try:
+            self._error_callbacks.remove(callback)
+        except ValueError:
+            pass
+
     def dispatch(self, data: bytes, addr: tuple[str, int]) -> None:
         """Parse a datagram and invoke the registered callback for addr[0]."""
         host = addr[0]
@@ -178,7 +186,17 @@ class SharedListener:
             else:
                 normalized_host = host
 
-        payload = parse_payload(data)
+        try:
+            payload = parse_payload(data)
+        except InvalidMacAddressError as err:
+            _LOGGER.debug(
+                "Received datagram with invalid MAC from %s, ignoring",
+                normalized_host,
+            )
+            for callback in self._error_callbacks:
+                callback(err, addr)
+            return
+
         if payload is None:
             _LOGGER.debug(
                 "Received unrecognised or undecodable datagram from %s, ignoring",
