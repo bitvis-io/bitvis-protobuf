@@ -46,22 +46,15 @@ def _log_payload(
         print("  ".join(parts))
 
 
-def _log_invalid_mac(addr: tuple[str, int]) -> None:
+def _log_invalid_mac(err: Exception, addr: tuple[str, int]) -> None:
     """Print a message when a datagram has no valid MAC address."""
-    print(f"ignored datagram with invalid MAC from {addr[0]}")
+    if isinstance(err, InvalidMacAddressError):
+        print(f"ignored datagram with invalid MAC from {addr[0]}")
 
 
 async def _run(port: int, filters: list[Filter]) -> None:
     listener: SharedListener = SharedListener()
-    original_dispatch = listener.dispatch
-
-    def dispatch(data: bytes, addr: tuple[str, int]) -> None:
-        try:
-            original_dispatch(data, addr)
-        except InvalidMacAddressError:
-            _log_invalid_mac(addr)
-
-    listener.dispatch = dispatch
+    listener.register_error_callback(_log_invalid_mac)
 
     try:
         await listener.start(port)

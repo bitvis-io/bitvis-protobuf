@@ -16,8 +16,8 @@ class InvalidMacAddressError(ValueError):
 
 def format_mac_address(mac_address: bytes) -> str:
     """Format raw MAC address bytes as colon-separated hexadecimal octets."""
-    if not mac_address:
-        raise InvalidMacAddressError("Payload has no MAC address")
+    if len(mac_address) != 6 or all(octet == 0 for octet in mac_address):
+        raise InvalidMacAddressError("Payload has no valid MAC address")
 
     return ":".join(f"{octet:02x}" for octet in mac_address)
 
