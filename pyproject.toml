@@ -22,7 +22,6 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    "getmac==0.9.5",
     "protobuf>=4.25.0",
 ]
 

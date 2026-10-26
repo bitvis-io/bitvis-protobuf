@@ -5,8 +5,6 @@ import ipaddress
 import logging
 import socket
 
-from getmac import get_mac_address as _get_mac_address
-
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -93,23 +91,3 @@ def normalize_host(host: str) -> str:
     if host.startswith("[") and host.endswith("]"):
         return host[1:-1]
     return host
-
-
-def get_mac_address_for_host(host: str) -> str:
-    """Look up the MAC address for *host*.
-
-    *host* may be an IPv4/IPv6 address or a resolvable hostname.
-    Returns a normalized MAC string suitable for use as a unique ID, or
-    00:00:00:00:00:00.
-    """
-    try:
-        ip = ipaddress.ip_address(host)
-    except ValueError:
-        mac = _get_mac_address(hostname=host)
-    else:
-        if ip.version == 4:
-            mac = _get_mac_address(ip=host)
-        else:
-            mac = _get_mac_address(ip6=host)
-
-    return mac if mac else "00:00:00:00:00:00"
