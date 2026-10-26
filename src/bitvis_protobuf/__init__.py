@@ -11,7 +11,6 @@ from .utils import (
     async_resolve_host,
     async_verify_udp_port_bindable,
     format_mac_address,
-    get_mac_address_for_host,
     normalize_host,
 )
 
@@ -30,6 +29,5 @@ __all__ = [
     "async_resolve_host",
     "async_verify_udp_port_bindable",
     "format_mac_address",
-    "get_mac_address_for_host",
     "normalize_host",
 ]
